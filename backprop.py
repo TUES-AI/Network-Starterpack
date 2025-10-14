@@ -25,7 +25,7 @@ This module lets students:
                                                     network_size[i]))
 
   2) provide a data function:
-        def get_data(split: str, index: int, dir: str="data"):
+        def get_data(split: str, index: int):
             # returns (array_like features, int label)
             return x, y
 
@@ -126,14 +126,13 @@ def _to_simple_network(params: Params) -> List[Dict[str, Any]]:
 
 
 def _validate_first_last_dims(params: Params,
-                              get_data: Callable[[str, int, str], Tuple[Any, int]],
+                              get_data: Callable[[str, int], Tuple[Any, int]],
                               split: str,
-                              num_classes: Optional[int] = None,
-                              data_dir: str = "data") -> Tuple[int, int]:
+                              num_classes: Optional[int] = None) -> Tuple[int, int]:
     """
     Peek one sample to validate input dimension and infer (#features, #classes).
     """
-    x0, y0 = get_data(split, 0, data_dir)
+    x0, y0 = get_data(split, 0)
     x0 = np.asarray(x0)
     if x0.ndim != 1:
         raise ValueError(f"get_data must return a 1D feature vector; got shape {x0.shape}")
@@ -226,10 +225,9 @@ def _make_batch_accuracy_fn(activation_fn: Callable[[jnp.ndarray], jnp.ndarray])
 # Data helpers
 # -------------------------
 
-def _fetch_batch(get_data: Callable[[str, int, str], Tuple[Any, int]],
+def _fetch_batch(get_data: Callable[[str, int], Tuple[Any, int]],
                  split: str,
                  indices: Sequence[int],
-                 data_dir: str,
                  device: Any) -> Tuple[jnp.ndarray, jnp.ndarray]:
     """
     Build a batch by calling user-provided get_data() for each index.
@@ -238,7 +236,7 @@ def _fetch_batch(get_data: Callable[[str, int, str], Tuple[Any, int]],
     xs = []
     ys = []
     for idx in indices:
-        x_i, y_i = get_data(split, int(idx), data_dir)
+        x_i, y_i = get_data(split, int(idx))
         xs.append(np.asarray(x_i, dtype=np.float32))
         ys.append(int(y_i))
     X = jnp.asarray(np.stack(xs, axis=0))
@@ -253,7 +251,7 @@ def _fetch_batch(get_data: Callable[[str, int, str], Tuple[Any, int]],
 
 def train(
     network: List[Dict[str, Any]],
-    get_data: Callable[[str, int, str], Tuple[Any, int]],
+    get_data: Callable[[str, int], Tuple[Any, int]],
     *,
     learning_rate: float = 1e-2,
     number_of_epochs: int = 3,
@@ -261,7 +259,6 @@ def train(
     size_data_set: int = 60_000,
     activation_function: str = "relu",
     batch_size: int = 64,
-    data_dir: str = "data",
     split: str = "train",
     seed: int = 0,
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
@@ -290,7 +287,7 @@ def train(
     update = _make_update_fn(activation_fn)
 
     # Validate shapes vs first sample; infer input and output dims.
-    _validate_first_last_dims(params, get_data, split, data_dir=data_dir)
+    _validate_first_last_dims(params, get_data, split)
 
     rng = np.random.default_rng(seed)
     batches_per_epoch = max(1, (data_to_train_on + batch_size - 1) // batch_size)
@@ -305,7 +302,7 @@ def train(
         # Mini-batch SGD
         for s in range(0, data_to_train_on, batch_size):
             batch_indices = subset[s : s + batch_size]
-            Xb, Yb = _fetch_batch(get_data, split, batch_indices, data_dir, device)
+            Xb, Yb = _fetch_batch(get_data, split, batch_indices, device)
             params, last_loss = update(params, Xb, Yb, learning_rate)
 
     updated_network = _to_simple_network(params)
@@ -320,12 +317,11 @@ def train(
 
 def evaluate(
     network: List[Dict[str, Any]],
-    get_data: Callable[[str, int, str], Tuple[Any, int]],
+    get_data: Callable[[str, int], Tuple[Any, int]],
     *,
     size_data_set: int,
     batch_size: int = 256,
     activation_function: str = "relu",
-    data_dir: str = "data",
     split: str = "test",
 ) -> float:
     device = _choose_device()
@@ -339,7 +335,7 @@ def evaluate(
     total = 0
     for s in range(0, size_data_set, batch_size):
         idxs = range(s, min(s + batch_size, size_data_set))
-        Xb, Yb = _fetch_batch(get_data, split, idxs, data_dir, device)
+        Xb, Yb = _fetch_batch(get_data, split, idxs, device)
         # CHANGED: call the compiled closure
         acc = batch_accuracy(params, Xb, Yb)
         correct += float(acc) * (Xb.shape[0])
