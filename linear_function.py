@@ -38,7 +38,6 @@ a0, b0 = 1.0, 0.0
 x = np.linspace(-XMAX, XMAX, 800)
 (line,) = ax.plot(x, a0 * x + b0, lw=2.5, color="crimson")
 p_intercept = ax.plot(0, b0, "o", ms=6, color="crimson", alpha=0.9)[0]
-p_sample    = ax.plot(-3, a0 * (-3) + b0, "o", ms=6, color="crimson", alpha=0.7)[0]
 
 A_ANCHORS = np.array([-5.0, -1.0, 0.0, 1.0, 5.0])
 U_ANCHORS = np.array([0.0, 0.25, 0.5, 0.75, 1.0])
@@ -87,7 +86,6 @@ def update(_):
 
     line.set_ydata(a * x + b)
     p_intercept.set_data([0], [b])
-    p_sample.set_data([-3], [a * (-3) + b])
 
     formula_text.set_text(f"y = {a:.3g} * x + {b:.3g}")
 
