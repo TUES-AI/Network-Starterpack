@@ -47,6 +47,8 @@ from functools import partial
 import numpy as np
 import jax
 import jax.numpy as jnp
+from typing import Any, Callable, Tuple
+from numbers import Integral
 
 
 # -------------------------
@@ -126,7 +128,7 @@ def _to_simple_network(params: Params) -> List[Dict[str, Any]]:
 
 
 def _validate_first_last_dims(params: Params,
-                              get_data: Callable[[str, int], Tuple[Any, int]],
+                              get_data: Callable[[str, int], Tuple[Any, Integral]],
                               split: str,
                               num_classes: Optional[int] = None) -> Tuple[int, int]:
     """
@@ -254,13 +256,13 @@ def train(
     get_data: Callable[[str, int], Tuple[Any, int]],
     *,
     learning_rate: float = 1e-2,
-    number_of_epochs: int = 3,
+    number_of_epochs: int = 100,
     data_to_train_on: int = 10_000,
     size_data_set: int = 60_000,
     activation_function: str = "relu",
     batch_size: int = 64,
     split: str = "train",
-    seed: int = 0,
+    seed: int = np.random.randint(0,100000)
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     """
     Train the given 'dumb' network on classification with softmax x-entropy.
