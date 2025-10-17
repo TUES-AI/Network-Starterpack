@@ -1,0 +1,21 @@
+# Shared Neural Network Configuration
+# This configuration is used by all dataset visualization scripts
+
+network:
+  hidden_layer_sizes: [5, 10]
+  activation: 'relu'
+  solver: 'adam'
+  batch_size: 400
+  max_iter: 2000
+  random_state: 0
+
+# Common training parameters
+training:
+  n_samples: 400
+  random_state: 0
+
+# Default visualization range (can be overridden by specific datasets)
+visualization:
+  x_range: [-1.5, 1.5]
+  y_range: [-1.5, 1.5]
+  grid_resolution: 400

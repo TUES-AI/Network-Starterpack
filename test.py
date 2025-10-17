@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_circles
+import sklearn.datasets as data
 from sklearn.neural_network import MLPClassifier
 
-X, y = make_circles(n_samples=400, noise=0.1, factor=0.3, random_state=0)
+# X, y = data.make_circles(n_samples=400, noise=0.1, factor=0.3, random_state=0)
+X, y = data.make_moons(n_samples=400, noise=0.1, random_state=0)
 
 clf = MLPClassifier(hidden_layer_sizes=(5,10), activation='relu',
                    solver='adam', batch_size=400,
