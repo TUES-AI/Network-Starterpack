@@ -193,11 +193,9 @@ def create_interactive_mlp_visualization(X, y, title, x_range=None, y_range=None
             # Left click → Class 0 (unless Shift is held)
             if event.button == 1 and not (event.key and "shift" in str(event.key).lower()):
                 X_user_class0.append([event.xdata, event.ydata])
-                print(f'Added Class 0 point at ({event.xdata:.2f}, {event.ydata:.2f})')
             # Right click OR Shift+Left click → Class 1 (works even if browser blocks right-click)
             elif event.button == 3 or (event.button == 1 and event.key and "shift" in str(event.key).lower()):
                 X_user_class1.append([event.xdata, event.ydata])
-                print(f'Added Class 1 point at ({event.xdata:.2f}, {event.ydata:.2f})')
 
             debounced_train_and_plot()
 
@@ -205,7 +203,6 @@ def create_interactive_mlp_visualization(X, y, title, x_range=None, y_range=None
         nonlocal X_user_class0, X_user_class1
         X_user_class0.clear()
         X_user_class1.clear()
-        print("Cleared all user-added points")
         train_and_plot()
 
     # Connect the button to the training function
@@ -259,9 +256,3 @@ def create_interactive_mlp_visualization_with_config(X, y, title, config_overrid
         X, y, title, x_range, y_range, grid_resolution
     )
 
-    # Print interactive instructions
-    print("\n=== INTERACTIVE MODE ACTIVATED ===")
-    print("Left click: Add Class 0 point (red circles)")
-    print("Right click: Add Class 1 point (blue crosses)")
-    print("Model retrains automatically when points are added")
-    print("Use 'CLEAR ADDED POINTS' to reset user additions")
