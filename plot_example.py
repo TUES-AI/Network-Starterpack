@@ -3,7 +3,7 @@
 Example usage of the responsive plotting system
 """
 
-from responsive_plot import initialize_plot, add_dot, remove_dot, clear_dots, get_dots, set_tint, remove_tint, close_plot
+from responsive_plot import initialize_plot, add_dot, remove_dot, clear_dots, get_dots, close_plot
 
 # Initialize the plot at the beginning of your file
 initialize_plot()
