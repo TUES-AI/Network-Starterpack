@@ -7,17 +7,17 @@ from interactive_mlp import create_interactive_mlp_visualization
 with open('Config.yml', 'r') as file:
     config = yaml.safe_load(file)
 
-# Generate gaussian quantiles dataset
-X, y = data.make_gaussian_quantiles(
+# Generate blobs dataset
+X, y = data.make_blobs(
     n_samples=config['training']['n_samples'],
-    n_features=2,
-    n_classes=2,
+    centers=2,
+    cluster_std=1.0,
     random_state=config['training']['random_state']
 )
 
-# Create interactive visualization
+# Create interactive visualization (uses auto-calculated ranges)
 create_interactive_mlp_visualization(
     X, y,
-    title='MLP decision boundary on Gaussian Quantiles Dataset',
+    title='MLP decision boundary on Blobs Dataset',
     grid_resolution=config['visualization']['grid_resolution']
 )

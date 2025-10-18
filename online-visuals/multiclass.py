@@ -7,12 +7,13 @@ from interactive_mlp import create_interactive_mlp_visualization
 with open('Config.yml', 'r') as file:
     config = yaml.safe_load(file)
 
-# Generate classification dataset
+# Generate multi-class classification dataset
 X, y = data.make_classification(
     n_samples=config['training']['n_samples'],
     n_features=2,
     n_informative=2,
     n_redundant=0,
+    n_classes=3,
     n_clusters_per_class=1,
     random_state=config['training']['random_state']
 )
@@ -20,6 +21,6 @@ X, y = data.make_classification(
 # Create interactive visualization
 create_interactive_mlp_visualization(
     X, y,
-    title='MLP decision boundary on Classification Dataset',
+    title='MLP decision boundary on Multi-class Dataset',
     grid_resolution=config['visualization']['grid_resolution']
 )
