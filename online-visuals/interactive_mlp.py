@@ -2,21 +2,20 @@
 Enhanced interactive MLP visualization module with click-to-add data points and performance optimizations.
 Allows users to add Class 0 (left click) and Class 1 (right click) points to test model generalization.
 """
-
 import numpy as np
-# Use ipympl so clicks, TextBox, and Button work in Colab
-import os, matplotlib
-os.environ.setdefault("MPLBACKEND", "module://ipympl.backend_nbagg")
-try:
-    matplotlib.use("module://ipympl.backend_nbagg")
-except Exception:
-    pass
-
+# # Use ipympl so clicks, TextBox, and Button work in Colab
+# import os, matplotlib
+# os.environ.setdefault("MPLBACKEND", "module://ipympl.backend_nbagg")
+# try:
+#     matplotlib.use("module://ipympl.backend_nbagg")
+# except Exception:
+#     pass
 import matplotlib.pyplot as plt
 import matplotlib.widgets as widgets
 from sklearn.neural_network import MLPClassifier
 import yaml
 import time
+
 
 
 def create_interactive_mlp_visualization(X, y, title, x_range=None, y_range=None, grid_resolution=400):
