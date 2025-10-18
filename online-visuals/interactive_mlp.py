@@ -1,5 +1,5 @@
 # interactive_mlp.py  (drop into online-visuals/)
-# Colab runner should do:
+# Runner (in Colab) should do:
 #   from google.colab import output; output.enable_custom_widget_manager()
 #   %pip -q install ipympl ipywidgets
 #   %matplotlib widget
@@ -19,24 +19,25 @@ from sklearn.pipeline import make_pipeline
 
 try:
     import yaml
-except Exception:  # yaml is only needed if you pass a path
+except Exception:
     yaml = None
 
 # Keep widget & callback refs alive in notebooks (prevents GC => dead buttons)
 _WIDGET_REFS = {}
 
 # --------------------------------------------------------------------------------------
-# Public API expected by your dataset scripts
+# Public API expected by dataset scripts
 # --------------------------------------------------------------------------------------
 
-def create_interactive_mlp_visualization_with_config(config, X=None, Y=None, title=None):
+def create_interactive_mlp_visualization_with_config(*args, **kwargs):
     """
-    Accepts either:
-      - config: dict   (already loaded YAML)
-      - config: str    (path to YAML file)
-    and data (X, Y). If X/Y are None and the config contains dataset hints for 'circles',
-    we will synthesize a circles dataset as a convenience.
+    Flexible signatures:
+      - create_interactive_mlp_visualization_with_config(config, X, y, title=...)
+      - create_interactive_mlp_visualization_with_config(X, y, title=...)
+      - create_interactive_mlp_visualization_with_config(config_dict_or_path, title=...)  # will synthesize data if config includes dataset hints
+    Also supports keyword args X=..., Y=..., title=...
     """
+    config, X, Y, title = _normalize_signature(*args, **kwargs)
     cfg = _load_config(config)
 
     # Defaults from config (with safe fallbacks)
@@ -44,7 +45,7 @@ def create_interactive_mlp_visualization_with_config(config, X=None, Y=None, tit
     lr     = _get(cfg, ["network", "learning_rate_init"], default=_get(cfg, ["training", "learning_rate"], 1e-3))
     hidden = tuple(_get(cfg, ["network", "hidden_layer_sizes"], default=[10])) or (10,)
 
-    # If no data was provided and config hints a dataset, synthesize circles
+    # If no data provided but config hints a dataset, synthesize circles
     if X is None or Y is None:
         ds = str(_get(cfg, ["dataset", "name"], default="")).lower()
         if ds == "circles" or (_get(cfg, ["training", "n_samples"], None) is not None and _get(cfg, ["dataset", "name"], "") == ""):
@@ -76,7 +77,7 @@ def create_interactive_mlp_visualization_with_config(config, X=None, Y=None, tit
     return _launch(X, Y, title=title, x_range=x_range, y_range=y_range, **params)
 
 
-# Back-compat / convenience entry points (used by some of your scripts possibly)
+# Back-compat / convenience entry points
 def create_interactive_mlp_visualization(X, Y, title: str = "Interactive MLP"):
     return _launch(X, Y, title=title)
 
@@ -96,12 +97,63 @@ def interactive_mlp(X, Y, title: str = "Interactive MLP"):
     return _launch(X, Y, title=title)
 
 # --------------------------------------------------------------------------------------
-# Implementation
+# Signature normalization
+# --------------------------------------------------------------------------------------
+
+def _looks_like_X(obj):
+    try:
+        arr = np.asarray(obj)
+        return arr.ndim == 2 and arr.shape[1] == 2 and np.issubdtype(arr.dtype, np.number)
+    except Exception:
+        return False
+
+def _looks_like_Y(obj):
+    try:
+        arr = np.asarray(obj)
+        return arr.ndim == 1 and np.issubdtype(arr.dtype, np.number)
+    except Exception:
+        return False
+
+def _normalize_signature(*args, **kwargs):
+    """
+    Returns (config, X, Y, title) parsed from flexible inputs.
+    """
+    config = kwargs.pop("config", None)
+    X = kwargs.pop("X", kwargs.pop("x", None))
+    Y = kwargs.pop("Y", kwargs.pop("y", None))
+    title = kwargs.pop("title", None)
+
+    # Positional parsing
+    if len(args) >= 1:
+        a0 = args[0]
+        if _looks_like_X(a0):   # (X, Y, [title])
+            X = a0
+            if len(args) >= 2 and _looks_like_Y(args[1]):
+                Y = args[1]
+            if len(args) >= 3 and isinstance(args[2], (str, bytes)):
+                title = args[2]
+        else:
+            config = a0
+            if len(args) >= 2 and _looks_like_X(args[1]):
+                X = args[1]
+            if len(args) >= 3 and _looks_like_Y(args[2]):
+                Y = args[2]
+            if len(args) >= 4 and isinstance(args[3], (str, bytes)):
+                title = args[3]
+
+    if kwargs:
+        # anything left is unexpected but harmless
+        pass
+
+    return config, X, Y, title
+
+# --------------------------------------------------------------------------------------
+# Config helpers
 # --------------------------------------------------------------------------------------
 
 def _load_config(config):
-    if isinstance(config, dict):
-        return config
+    if isinstance(config, dict) or config is None:
+        return config or {}
     if isinstance(config, str):
         if yaml is None:
             raise ImportError("PyYAML is required to load a YAML path as config.")
@@ -109,11 +161,8 @@ def _load_config(config):
             raise FileNotFoundError(f"Config path not found: {config}")
         with open(config, "r", encoding="utf-8") as f:
             return yaml.safe_load(f) or {}
-    if config is None:
-        return {}
-    # Support accidental (X, Y, config) order
-    if hasattr(config, "get"):  # duck-typed dict-like
-        return config
+    if hasattr(config, "get"):  # dict-like
+        return dict(config)
     raise TypeError("config must be a dict, YAML path string, or None.")
 
 def _get(cfg, keys, default=None):
@@ -126,6 +175,10 @@ def _get(cfg, keys, default=None):
         return cur if cur is not None else default
     except Exception:
         return default
+
+# --------------------------------------------------------------------------------------
+# Core visualization
+# --------------------------------------------------------------------------------------
 
 def _launch(
     X, Y,
@@ -349,10 +402,10 @@ def _launch(
     }
 
 # --------------------------------------------------------------------------------------
-# Standalone demo (optional local run): python interactive_mlp.py
+# Standalone demo (optional local run)
 # --------------------------------------------------------------------------------------
 if __name__ == "__main__":
     from sklearn.datasets import make_circles
     X_demo, Y_demo = make_circles(n_samples=400, noise=0.1, factor=0.3, random_state=0)
-    create_interactive_mlp_visualization_with_config({}, X_demo, Y_demo, title="Circles (demo)")
+    create_interactive_mlp_visualization_with_config(X_demo, Y_demo, title="Circles (demo)")
 
