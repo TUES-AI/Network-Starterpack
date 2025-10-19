@@ -19,8 +19,14 @@ X, y = data.make_circles(
     random_state=config['training']['random_state']
 )
 
-print(f"Generated {len(X)} data points for circles dataset")
-print(f"Class 0: {(y==0).sum()} points, Class 1: {(y==1).sum()} points\n")
+print("="*70)
+print("📊 CIRCLES DATASET LOADED")
+print("="*70)
+print(f"✅ Generated {len(X)} data points")
+print(f"   - Class 0 (red circles): {(y==0).sum()} points")
+print(f"   - Class 1 (blue X's): {(y==1).sum()} points")
+print("="*70)
+print()
 
 # Create interactive visualization
 create_interactive_mlp_visualization_with_config(
