@@ -5,7 +5,7 @@ Circles dataset visualization for Google Colab
 import numpy as np
 import sklearn.datasets as data
 import yaml
-from interactive_mlp_colab import create_interactive_mlp_visualization_with_config
+from interactive_mlp import create_interactive_mlp_visualization_with_config
 
 # Load shared configuration
 with open('Config.yml', 'r') as file:
